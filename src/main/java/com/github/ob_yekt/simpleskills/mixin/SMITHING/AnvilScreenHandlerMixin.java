@@ -215,18 +215,20 @@ public abstract class AnvilScreenHandlerMixin extends ItemCombinerMenu implement
         }
     }
 
-    // NEW INJECTION: Intercepts the player level deduction in onTakeOutput.
-    @Inject(method = "onTake",
+    // REDIRECT: Suppress the vanilla giveExperienceLevels call inside onTake for pure repairs.
+    // Using a Redirect (instead of a cancellable Inject) means only this one call is skipped;
+    // the rest of onTake (slot clearing, repairItemCountCost consumption, etc.) continues normally.
+    @Redirect(method = "onTake",
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/player/Player;giveExperienceLevels(I)V",
-                    shift = At.Shift.BEFORE),
-            cancellable = true)
-    private void simpleskills_preventLevelChangeOnPureRepair(Player player, ItemStack stack, CallbackInfo ci) {
-        // If it's a pure repair, the cost is -1. We must cancel the level application
-        // to prevent the player from gaining a level (losing -1 levels).
-        if (this.simpleskills$isPureRepair && this.cost.get() == -1) {
-            ci.cancel();
+                    target = "Lnet/minecraft/world/entity/player/Player;giveExperienceLevels(I)V"))
+    private void simpleskills_suppressVanillaLevelChange(Player player, int levels) {
+        // For pure repairs the cost was set to -1, so vanilla would call giveExperienceLevels(-1)
+        // which adds a level. Skip it entirely; simpleskills grants its own XP separately.
+        if (this.simpleskills$isPureRepair) {
+            return; // no-op: drop the vanilla XP grant
         }
+        // For all other anvil operations (enchanting, renaming) let vanilla proceed normally.
+        player.giveExperienceLevels(levels);
     }
 
 
@@ -247,11 +249,12 @@ public abstract class AnvilScreenHandlerMixin extends ItemCombinerMenu implement
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
         if (this.simpleskills$isPureRepair) {
-            // Grant Smithing XP for the repair
+            // Grant Smithing XP for the repair.
+            // Do NOT reset simpleskills$isPureRepair here — the BEFORE-giveExperienceLevels inject
+            // still needs it to be true so it can cancel the vanilla level deduction. It will be
+            // reset in the TAIL inject below.
             grantSmithingXP(serverPlayer, this.inputSlots.getItem(1));
             this.durabilityRepaired = 0;
-            this.simpleskills$isPureRepair = false;
-            // Note: repairItemUsage is handled in the original onTakeOutput after this head inject
             return;
         }
 
@@ -262,7 +265,13 @@ public abstract class AnvilScreenHandlerMixin extends ItemCombinerMenu implement
         }
 
         this.durabilityRepaired = 0;
+    }
+
+    @Inject(method = "onTake", at = @At("TAIL"))
+    private void simpleskills_resetStateOnTakeOutput(Player player, ItemStack stack, CallbackInfo ci) {
+        // Reset state only after all other injects (including the level-deduction guard) have run.
         this.simpleskills$isPureRepair = false;
+        this.durabilityRepaired = 0;
     }
 
     // === Utilities ===
