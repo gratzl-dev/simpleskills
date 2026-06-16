@@ -2,11 +2,14 @@ package com.github.ob_yekt.simpleskills.managers;
 
 import com.github.ob_yekt.simpleskills.Simpleskills;
 import java.util.Objects;
+import java.util.Optional;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.ServerScoreboard;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.TeamColor;
 
 /**
  * Maintains per-player scoreboard team to show chat/nametag/tab-list prefix: "★X [username]" and skull for Ironman.
@@ -36,7 +39,7 @@ public class NamePrefixManager {
         }
 
         team.setPlayerPrefix(Component.literal(prefix));
-        team.setColor(ChatFormatting.WHITE);
+        team.setColor(Optional.of(TeamColor.WHITE));
 
         // Ensure membership
         scoreboard.addPlayerToTeam(player.getScoreboardName(), team);
