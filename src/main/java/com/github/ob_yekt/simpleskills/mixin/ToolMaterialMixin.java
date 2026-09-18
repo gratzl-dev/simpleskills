@@ -1,5 +1,6 @@
 package com.github.ob_yekt.simpleskills.mixin;
 
+import com.github.ob_yekt.simpleskills.managers.ConfigManager;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ToolMaterial;
@@ -16,8 +17,10 @@ public abstract class ToolMaterialMixin {
     @Shadow @Final @Mutable
     public static ToolMaterial COPPER;
 
-    @Inject(method = "<clinit>", at = @At("RETURN"))
-    private static void modifyCopperTier(CallbackInfo ci) {
-        COPPER = new ToolMaterial(BlockTags.INCORRECT_FOR_IRON_TOOL, 190, 5.0F, 1.0F, 13, ItemTags.COPPER_TOOL_MATERIALS);
-    }
+	@Inject(method = "<clinit>", at = @At("RETURN"))
+	private static void modifyCopperTier(CallbackInfo ci) {
+		if (ConfigManager.isCopperMiningBalancingEnabled()) {
+			COPPER = new ToolMaterial(BlockTags.INCORRECT_FOR_IRON_TOOL, 190, 5.0F, 1.0F, 13, ItemTags.COPPER_TOOL_MATERIALS);
+		}
+	}
 }
