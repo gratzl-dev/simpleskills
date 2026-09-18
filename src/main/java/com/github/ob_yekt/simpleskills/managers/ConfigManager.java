@@ -181,7 +181,7 @@ public class ConfigManager {
     }
 
     public static boolean isCopperMiningBalancingEnabled() {
-        return featureConfig.get("copper_mining_balancing").getAsBoolean();
+        return isBooleanFeatureEnabled("copper_mining_balancing");
     }
 
     /**
@@ -1689,19 +1689,23 @@ public class ConfigManager {
      * Checks if the fishing speed bonus is enabled.
      */
     public static boolean isFishingSpeedBonusEnabled() {
+        return isBooleanFeatureEnabled("fishing_speed_bonus_enabled");
+    }
+
+    private static boolean isBooleanFeatureEnabled(String feature) {
         try {
-            if (featureConfig.has("fishing_speed_bonus_enabled")) {
-                return featureConfig.get("fishing_speed_bonus_enabled").getAsBoolean();
+            if (featureConfig.has(feature)) {
+                return featureConfig.get(feature).getAsBoolean();
             } else if (featureConfig.has("features")) {
                 JsonObject features = featureConfig.getAsJsonObject("features");
-                if (features != null && features.has("fishing_speed_bonus_enabled")) {
-                    return features.get("fishing_speed_bonus_enabled").getAsBoolean();
+                if (features != null && features.has(feature)) {
+                    return features.get(feature).getAsBoolean();
                 }
             }
-            return true; // Default from getDefaultFeatureConfig()
+            return getDefaultFeatureConfig().get(feature).getAsBoolean();
         } catch (Exception e) {
             Simpleskills.LOGGER.warn("Error reading fishing_speed_bonus_enabled; defaulting to true");
-            return true;
+            return getDefaultFeatureConfig().get(feature).getAsBoolean();
         }
     }
 
