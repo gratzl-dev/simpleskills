@@ -169,6 +169,7 @@ public class ConfigManager {
         json.addProperty("crafting_lore_in_tooltips_enabled", true);
         json.addProperty("custom_fishing_loot_enabled", true);
         json.addProperty("fishing_speed_bonus_enabled", true);
+        json.addProperty("copper_mining_balancing", true);
         return json;
     }
 
@@ -177,6 +178,10 @@ public class ConfigManager {
      */
     public static boolean isForceIronmanModeEnabled() {
         return featureConfig.get("force_ironman_mode").getAsBoolean();
+    }
+
+    public static boolean isCopperMiningBalancingEnabled() {
+        return featureConfig.get("copper_mining_balancing").getAsBoolean();
     }
 
     /**
