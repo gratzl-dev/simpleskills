@@ -99,6 +99,7 @@ public class SimpleskillsCommands {
                                                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(getValidSkills(), builder))
                                                         .executes(SimpleskillsCommands::querySkill))))
                                 .then(Commands.literal("leaderboard")
+                                        .executes(SimpleskillsCommands::showTotalLevelLeaderboard)
                                         .then(Commands.literal("TOTAL")
                                                 .executes(SimpleskillsCommands::showTotalLevelLeaderboard))
                                         .then(Commands.argument("skill", StringArgumentType.word())
